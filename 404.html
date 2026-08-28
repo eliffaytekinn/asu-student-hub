@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa Bulunamadı | ASÜ Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config = { theme: { extend: { colors: { asuDark: '#0f172a', asuPurple: '#6366f1' } } } }</script>
+</head>
+<body class="bg-asuDark text-white h-screen flex flex-col items-center justify-center text-center p-4">
+    
+    <div class="relative">
+        <div class="absolute inset-0 bg-asuPurple blur-3xl opacity-20 rounded-full"></div>
+        <h1 class="text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500 relative z-10">404</h1>
+    </div>
+
+    <h2 class="text-2xl font-bold mt-4">Ops! Kaybolmuş gibisin.</h2>
+    <p class="text-slate-400 mt-2 max-w-md">Aradığın not veya kitap buralarda yok. Belki de silinmiştir ya da hiç var olmamıştır.</p>
+
+    <a href="index.html" class="mt-8 bg-asuPurple hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2">
+        <i class="fa-solid fa-house"></i> Kampüse Dön
+    </a>
+
+</body>
+</html>

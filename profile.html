@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASÜ Hub - Profil Kontrol Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        
+        
+        .navbar { background-color: #fff; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #0d2346; }
+        .nav-link { color: #555; font-weight: 500; margin: 0 10px; }
+        .nav-link:hover, .nav-link.active { color: #dc3545; }
+
+      
+        .profile-sidebar { background: #fff; border-radius: 12px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .avatar-circle { width: 100px; height: 100px; background: #0d6efd; color: white; font-size: 2.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold; }
+        .user-email-text { font-size: 0.9rem; color: #6c757d; word-break: break-all; }
+        
+      
+        .content-card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); min-height: 400px; }
+        
+   
+        .nav-pills .nav-link { color: #555; font-weight: 600; border-radius: 8px; padding: 12px 20px; text-align: left; }
+        .nav-pills .nav-link.active { background-color: #0d2346; color: white; }
+        .nav-pills .nav-link i { width: 25px; }
+
+       
+        .upload-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .upload-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">ASÜ <span style="color:#dc3545">HUB</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="notes.html">Ders Notları</a></li>
+                    <li class="nav-item"><a class="nav-link" href="books.html">Sahaf</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">S.S.S</a></li>
+                    <li class="nav-item ms-lg-3">
+                        <button onclick="logoutUser()" class="btn btn-outline-danger btn-sm px-4">Çıkış Yap</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div id="fullPageLoader" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Kullanıcı bilgileri yükleniyor...</p>
+        </div>
+
+        <div class="row g-4" id="profileContainer" style="display: none;">
+            
+            <div class="col-lg-3">
+                <div class="profile-sidebar mb-4">
+                    <div class="avatar-circle" id="avatarInitial">U</div>
+                    <h5 class="fw-bold mb-1" id="displayNickname">Kullanıcı</h5>
+                    <p class="user-email-text mb-3" id="displayEmail">...</p>
+                    <span class="badge bg-secondary rounded-pill" id="displayFaculty">Bölüm Yok</span>
+                </div>
+
+                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <button class="nav-link active" id="v-pills-home-tab" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button">
+                        <i class="fa-solid fa-user-pen"></i> Profil Bilgileri
+                    </button>
+                    <button class="nav-link" id="v-pills-uploads-tab" data-bs-toggle="pill" data-bs-target="#tab-uploads" type="button" onclick="fetchMyUploads()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Yüklediklerim
+                    </button>
+                    <button class="nav-link" id="v-pills-password-tab" data-bs-toggle="pill" data-bs-target="#tab-password" type="button">
+                        <i class="fa-solid fa-lock"></i> Şifre Değiştir
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="content-card">
+                    <div class="tab-content" id="v-pills-tabContent">
+                        
+                        <div class="tab-pane fade show active" id="tab-profile">
+                            <h4 class="fw-bold mb-4">Profil Ayarları</h4>
+                            <form id="profileForm">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small fw-bold">E-Posta</label>
+                                    <input type="text" class="form-control bg-light" id="inputEmail" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nickname (Takma Ad)</label>
+                                    <input type="text" class="form-control" id="inputNickname" placeholder="Örn: Mühendis06">
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Fakülte</label>
+                                        <select class="form-select" id="inputFaculty">
+                                            <option value="">Seçiniz...</option>
+                                            <option value="Mühendislik">Mühendislik Fakültesi</option>
+                                            <option value="İİBF">İİBF</option>
+                                            <option value="Eğitim">Eğitim Fakültesi</option>
+                                            <option value="Fen Edebiyat">Fen Edebiyat</option>
+                                            <option value="Sağlık">Sağlık Bilimleri</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Bölüm</label>
+                                        <input type="text" class="form-control" id="inputDept" placeholder="Örn: Bilgisayar Müh.">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary px-4">Kaydet</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-uploads">
+                            <h4 class="fw-bold mb-4">Paylaşımlarım</h4>
+                            
+                            <h6 class="text-primary border-bottom pb-2 mt-4">Yüklediğim Ders Notları</h6>
+                            <div id="myNotesList">
+                                <p class="text-muted small">Yükleniyor...</p>
+                            </div>
+
+                            <h6 class="text-success border-bottom pb-2 mt-4">Kitap İlanlarım</h6>
+                            <div id="myBooksList">
+                                <p class="text-muted small">Yükleniyor...</p>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-password">
+                            <h4 class="fw-bold mb-4">Güvenlik</h4>
+                            <form id="passwordForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Yeni Şifre</label>
+                                    <input type="password" class="form-control" id="newPassword" placeholder="En az 6 karakter" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Yeni Şifre (Tekrar)</label>
+                                    <input type="password" class="form-control" id="confirmPassword" placeholder="Tekrar girin" required>
+                                </div>
+                                <button type="submit" class="btn btn-dark">Şifreyi Güncelle</button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      
+        const SUPABASE_URL = 'https://kmzbywrcspzwuznexcla.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_2mPJ39Ossxg8euZ9hgmfFg_O5mPR1Fh';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await client.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'login.html'; 
+                return;
+            }
+
+            currentUser = session.user;
+            
+            
+            document.getElementById('displayEmail').innerText = currentUser.email;
+            document.getElementById('inputEmail').value = currentUser.email;
+            document.getElementById('avatarInitial').innerText = currentUser.email.charAt(0).toUpperCase();
+
+         
+            const { data: profile, error } = await client
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (profile) {
+                document.getElementById('displayNickname').innerText = profile.nickname || 'Kullanıcı';
+                document.getElementById('displayFaculty').innerText = profile.faculty || 'Bölüm Yok';
+              
+                document.getElementById('inputNickname').value = profile.nickname || '';
+                document.getElementById('inputFaculty').value = profile.faculty || '';
+                document.getElementById('inputDept').value = profile.department || '';
+            }
+
+            document.getElementById('fullPageLoader').style.display = 'none';
+            document.getElementById('profileContainer').style.display = 'flex';
+        });
+
+     
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nickname = document.getElementById('inputNickname').value;
+            const faculty = document.getElementById('inputFaculty').value;
+            const department = document.getElementById('inputDept').value;
+
+            
+            const { error } = await client
+                .from('profiles')
+                .upsert({
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    nickname: nickname,
+                    faculty: faculty,
+                    department: department,
+                    updated_at: new Date()
+                });
+
+            if (error) {
+                alert('Hata: ' + error.message);
+            } else {
+                alert('Profil başarıyla güncellendi!');
+                location.reload(); 
+            }
+        });
+
+        
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            if (newPass.length < 6) return alert("Şifre en az 6 karakter olmalı.");
+            if (newPass !== confirmPass) return alert("Şifreler uyuşmuyor.");
+
+            const { error } = await client.auth.updateUser({ password: newPass });
+
+            if (error) {
+                alert("Hata: " + error.message);
+            } else {
+                alert("Şifreniz başarıyla değiştirildi.");
+                document.getElementById('passwordForm').reset();
+            }
+        });
+
+       
+        async function fetchMyUploads() {
+           
+    
+            const notesContainer = document.getElementById('myNotesList');
+        
+            const { data: notes, error: noteError } = await client
+                .from('notes')
+                .select('*')
+                .eq('user_id', currentUser.id); 
+
+            if (!notes || notes.length === 0) {
+                notesContainer.innerHTML = '<div class="alert alert-light small">Henüz not yüklemediniz.</div>';
+            } else {
+                let html = '';
+                notes.forEach(n => {
+                    html += `
+                    <div class="upload-item">
+                        <div>
+                            <span class="fw-bold d-block">${n.title}</span>
+                            <small class="text-muted">${new Date(n.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <a href="${n.file_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
+                    </div>`;
+                });
+                notesContainer.innerHTML = html;
+            }
+
+            const booksContainer = document.getElementById('myBooksList');
+            const { data: books, error: bookError } = await client
+                .from('books')
+                .select('*')
+                .eq('user_id', currentUser.id);
+
+            if (!books || books.length === 0) {
+                booksContainer.innerHTML = '<div class="alert alert-light small">Henüz kitap ilanı vermediniz.</div>';
+            } else {
+                let html = '';
+                books.forEach(b => {
+                    html += `
+                    <div class="upload-item">
+                        <div>
+                            <span class="fw-bold d-block">${b.title}</span>
+                            <span class="badge bg-secondary" style="font-size:0.7rem">${b.category}</span>
+                        </div>
+                        <span class="fw-bold text-success">${b.price} ₺</span>
+                    </div>`;
+                });
+                booksContainer.innerHTML = html;
+            }
+        }
+
+  
+        async function logoutUser() {
+            await client.auth.signOut();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
+

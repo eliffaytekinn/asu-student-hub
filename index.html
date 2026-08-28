@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASÜ Hub - Kampüsün Dijital Hafızası</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .navbar { background-color: #ffffff; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .navbar-brand { font-weight: 800; font-size: 1.6rem; color: #0d2346; }
+        .navbar-brand span { color: #dc3545; }
+        .nav-link { color: #555; font-weight: 500; margin: 0 10px; font-size: 1.05rem; }
+        .nav-link:hover, .nav-link.active { color: #dc3545; }
+        
+        
+        #announcementBox {
+            display: none;
+            background: #fff3cd;
+            color: #856404;
+            text-align: center;
+            padding: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid #ffeeba;
+        }
+
+        .hero-section {
+            background-color: #0d2346; 
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+        }
+        .hero-title { font-weight: 800; font-size: 3.5rem; margin-bottom: 15px; }
+        .hero-subtitle { font-size: 1.2rem; opacity: 0.8; margin-bottom: 40px; font-weight: 300; }
+        
+        .search-box {
+            background: white;
+            padding: 8px;
+            border-radius: 50px;
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .search-input { border: none; flex-grow: 1; padding: 15px 25px; font-size: 1rem; border-radius: 50px; outline: none; }
+        .btn-search { background-color: #dc3545; color: white; border: none; padding: 10px 30px; border-radius: 50px; font-weight: 700; transition: 0.3s; }
+        .btn-search:hover { background-color: #bb2d3b; }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            height: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+        .feature-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.05); }
+        .icon-box { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; }
+        .icon-red { background-color: #ffe5e7; color: #dc3545; }
+        .icon-blue { background-color: #e7f1ff; color: #0d6efd; }
+        .icon-green { background-color: #e0f8e9; color: #198754; }
+        .feature-title { font-weight: 700; margin-bottom: 15px; color: #333; }
+        .feature-text { color: #6c757d; font-size: 0.95rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div id="announcementBox">
+        <i class="fa-solid fa-bullhorn me-2"></i> <span id="announcementText"></span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">ASÜ <span>HUB</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link active" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="notes.html">Ders Notları</a></li>
+                    <li class="nav-item"><a class="nav-link" href="books.html">Sahaf</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">S.S.S</a></li>
+                    
+                    <li class="nav-item ms-lg-3" id="authContainer">
+                        <a href="login.html" class="btn btn-outline-dark px-4 rounded-pill">Giriş Yap</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Kampüsün Dijital Hafızası</h1>
+            <p class="hero-subtitle">Ders notlarını paylaş, kitaplarını takas et, kampüs hayatını kolaylaştır.</p>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Hangi ders notunu arıyorsun?">
+                <button class="btn-search" onclick="handleSearch()">ARA</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 my-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box icon-red"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <h4 class="feature-title">1. Yükle & Paylaş</h4>
+                        <p class="feature-text">Kendi ders notlarını sisteme yükle veya satmak istediğin kitapların fotoğrafını çekip ilan ver.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box icon-blue"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <h4 class="feature-title">2. Ara & Bul</h4>
+                        <p class="feature-text">İhtiyacın olan ders notunu fakülte bazlı filtrele veya aradığın kitabı sahaf bölümünde bul.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="icon-box icon-green"><i class="fa-solid fa-comments"></i></div>
+                        <h4 class="feature-title">3. İletişime Geç</h4>
+                        <p class="feature-text">Notlara yorum yap, puan ver. Kitaplar için satıcıyla WhatsApp üzerinden direkt konuş.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center py-4 text-muted bg-white border-top">
+        <div class="container">
+            <small>&copy; 2025 ASÜ HUB. Öğrenciler için geliştirildi.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const SUPABASE_URL = 'https://kmzbywrcspzwuznexcla.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_2mPJ39Ossxg8euZ9hgmfFg_O5mPR1Fh';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkUser();
+            loadAnnouncement();
+            
+            
+            document.getElementById('searchInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+        });
+
+      
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+               
+                window.location.href = `notes.html?q=${encodeURIComponent(query)}`;
+            } else {
+                alert("Lütfen aranacak bir kelime yazın.");
+            }
+        }
+
+        
+        async function checkUser() {
+            const { data: { session } } = await client.auth.getSession();
+            const authContainer = document.getElementById('authContainer');
+            
+            if (session) {
+                const { data: profile } = await client.from('profiles').select('is_admin').eq('id', session.user.id).single();
+                
+                let btnLink = "profile.html";
+                let btnText = "Profilim";
+                let btnClass = "btn-outline-dark";
+
+                if (profile && profile.is_admin) {
+                    btnLink = "yonetim-paneli.html";
+                    btnText = "Yönetim Paneli";
+                    btnClass = "btn-danger text-white border-0";
+                }
+
+                authContainer.innerHTML = `
+                    <div class="d-flex gap-2">
+                        <a href="${btnLink}" class="btn ${btnClass} px-3 rounded-pill fw-bold">${btnText}</a>
+                        <button onclick="handleLogout()" class="btn btn-outline-secondary px-3 rounded-pill">Çıkış</button>
+                    </div>
+                `;
+            } else {
+                authContainer.innerHTML = `
+                    <a href="login.html" class="btn btn-outline-dark px-4 rounded-pill">Giriş Yap</a>
+                `;
+            }
+        }
+
+       
+        window.handleLogout = async function() {
+            if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+                await client.auth.signOut();
+                window.location.href = "index.html"; 
+            }
+        }
+
+        async function loadAnnouncement() {
+            const { data: announcement } = await client
+                .from('announcements')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (announcement) {
+                document.getElementById('announcementBox').style.display = 'block';
+                document.getElementById('announcementText').innerText = announcement.text;
+            }
+        }
+    </script>
+</body>
+</html>
+

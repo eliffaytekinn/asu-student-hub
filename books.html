@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASÜ Hub - Sahaf</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; color: #333; }
+        
+        .navbar { background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 15px 0; }
+        .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #0d2346; }
+        .navbar-brand span { color: #dc3545; }
+        .nav-link { color: #555; font-weight: 500; margin: 0 10px; }
+        .nav-link:hover, .nav-link.active { color: #dc3545; }
+        
+        /* KİTAP KARTI TASARIMI */
+        .book-card { 
+            background: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            transition: 0.3s; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .book-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        /* Resim Alanı */
+        .book-img-container {
+            height: 250px;
+            overflow: hidden;
+            background-color: #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .book-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        
+        .book-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .book-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 5px; color: #0d2346; }
+        .book-price { font-size: 1.25rem; font-weight: 800; color: #198754; margin-bottom: 15px; }
+        .badge-category { position: absolute; top: 15px; right: 15px; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .btn-whatsapp { background-color: #25D366; color: white; border: none; font-weight: 600; width: 100%; margin-top: auto; }
+        .btn-whatsapp:hover { background-color: #20bd5a; color: white; }
+        .btn-add-book { background-color: #dc3545; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-weight: 600; }
+        .btn-add-book:hover { background-color: #bb2d3b; color: white; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fa-solid fa-graduation-cap me-2"></i>ASÜ <span>HUB</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="notes.html">Ders Notları</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="books.html">Sahaf</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">S.S.S</a></li>
+                    <li class="nav-item ms-lg-3"><a href="profile.html" class="btn btn-outline-dark btn-sm px-3">Profilim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark">Kampüs Sahafı</h2>
+            <button class="btn-add-book" data-bs-toggle="modal" data-bs-target="#addBookModal">
+                <i class="fa-solid fa-camera me-2"></i>İlan Ver
+            </button>
+        </div>
+
+        <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+            <button class="btn btn-outline-dark active rounded-pill px-4" onclick="filterBooks('all', this)">Tümü</button>
+            <button class="btn btn-outline-dark rounded-pill px-4" onclick="filterBooks('Satılık', this)">Satılık</button>
+            <button class="btn btn-outline-dark rounded-pill px-4" onclick="filterBooks('Takaslık', this)">Takaslık</button>
+            <button class="btn btn-outline-dark rounded-pill px-4" onclick="filterBooks('Bağış', this)">Bağış</button>
+        </div>
+
+        <div id="loadingSpinner" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Kitaplar yükleniyor...</p>
+        </div>
+
+        <div class="row g-4" id="booksContainer"></div>
+    </div>
+
+    <div class="modal fade" id="addBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Kitap İlanı Ver</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bookForm">
+                        <div class="mb-3"><label class="form-label">Kitap Adı</label><input type="text" class="form-control" id="bookTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Yazar</label><input type="text" class="form-control" id="bookAuthor"></div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Kategori</label>
+                                <select class="form-select" id="bookCategory">
+                                    <option value="Satılık">Satılık</option>
+                                    <option value="Takaslık">Takaslık</option>
+                                    <option value="Bağış">Bağış (Ücretsiz)</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Fiyat (TL)</label>
+                                <input type="number" class="form-control" id="bookPrice" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Telefon (WhatsApp için)</label>
+                            <input type="tel" class="form-control" id="bookContact" placeholder="5xx xxx xx xx" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-primary"><i class="fa-solid fa-image me-1"></i>Kitap Fotoğrafı</label>
+                            <input type="file" class="form-control" id="bookImage" accept="image/png, image/jpeg, image/jpg" required>
+                            <div class="form-text text-muted">Sadece JPG veya PNG formatında resim yükleyiniz.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="btnBookSubmit">İlanı Yayınla</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const SUPABASE_URL = 'https://kmzbywrcspzwuznexcla.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_2mPJ39Ossxg8euZ9hgmfFg_O5mPR1Fh';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener('DOMContentLoaded', fetchBooks);
+        let allBooks = [];
+
+      
+        async function fetchBooks() {
+            const container = document.getElementById('booksContainer');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            try {
+                const { data, error } = await client.from('books').select('*').order('created_at', { ascending: false });
+
+                spinner.style.display = 'none';
+
+                if (error) {
+                    console.error("Supabase Hatası:", error);
+                    container.innerHTML = '<div class="alert alert-danger w-100">Veriler yüklenemedi.</div>';
+                    return;
+                }
+
+                allBooks = data;
+                renderBooks(allBooks);
+            } catch (err) {
+                spinner.style.display = 'none';
+                console.error(err);
+                container.innerHTML = '<div class="alert alert-danger w-100">Hata oluştu.</div>';
+            }
+        }
+
+      
+        function renderBooks(books) {
+            const container = document.getElementById('booksContainer');
+            container.innerHTML = '';
+
+            if (!books || books.length === 0) {
+                container.innerHTML = '<div class="alert alert-light text-center w-100 border py-5"><i class="fa-solid fa-box-open fa-3x mb-3 text-muted"></i><br>Henüz hiç ilan yok. İlk ilanı sen ver!</div>';
+                return;
+            }
+
+            books.forEach(book => {
+                let badgeClass = 'bg-primary';
+                if(book.category === 'Satılık') badgeClass = 'bg-success';
+                if(book.category === 'Takaslık') badgeClass = 'bg-warning text-dark';
+                if(book.category === 'Bağış') badgeClass = 'bg-info text-dark';
+
+                const phone = book.contact_info ? book.contact_info.replace(/\D/g,'') : '';
+                const wpLink = `https://wa.me/90${phone}`;
+
+                let priceDisplay = book.price > 0 ? `${book.price} ₺` : 'Ücretsiz';
+                if(book.category === 'Takaslık') priceDisplay = 'Takas';
+
+                
+                const imageUrl = book.image_url || 'https://via.placeholder.com/300x400?text=Resim+Yok';
+
+                const html = `
+                <div class="col-md-6 col-lg-3">
+                    <div class="book-card position-relative">
+                        <span class="badge badge-category ${badgeClass}">${book.category}</span>
+                        <div class="book-img-container">
+                            <img src="${imageUrl}" class="book-img" alt="${book.title}">
+                        </div>
+                        <div class="book-body">
+                            <h5 class="book-title text-truncate" title="${book.title}">${book.title}</h5>
+                            <p class="text-muted small mb-2"><i class="fa-solid fa-user-pen me-1"></i> ${book.author || 'Yazar Belirtilmemiş'}</p>
+                            <div class="book-price">${priceDisplay}</div>
+                            
+                            <a href="${wpLink}" target="_blank" class="btn btn-whatsapp">
+                                <i class="fa-brands fa-whatsapp me-2"></i> İletişime Geç
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        document.getElementById('bookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnBookSubmit');
+            const originalText = btn.innerHTML;
+            
+      
+            const { data: { user } } = await client.auth.getUser();
+            if (!user) {
+                alert("İlan vermek için giriş yapmalısınız!");
+                window.location.href = "login.html";
+                return;
+            }
+
+        
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Fotoğraf Yükleniyor...'; 
+            btn.disabled = true;
+
+            const file = document.getElementById('bookImage').files[0];
+            
+
+            const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_').toLowerCase();
+            const fileName = `book_${Date.now()}_${safeName}`;
+
+            try {
+                /
+                const { error: uploadError } = await client.storage.from('book_images').upload(fileName, file);
+                
+                if (uploadError) {
+                    throw new Error("Resim yüklenemedi: " + uploadError.message);
+                }
+
+                
+                const { data: publicUrlData } = client.storage.from('book_images').getPublicUrl(fileName);
+                const publicURL = publicUrlData.publicUrl;
+                
+               
+                const { error: dbError } = await client.from('books').insert([{
+                    user_id: user.id,
+                    title: document.getElementById('bookTitle').value,
+                    author: document.getElementById('bookAuthor').value,
+                    category: document.getElementById('bookCategory').value,
+                    price: document.getElementById('bookPrice').value,
+                    contact_info: document.getElementById('bookContact').value,
+                    image_url: publicURL, 
+                    seller_name: 'Öğrenci'
+                }]);
+
+                if (dbError) throw dbError;
+
+                alert('İlan başarıyla ve fotoğraflı olarak yayınlandı! 📸');
+                location.reload();
+
+            } catch (err) {
+                alert('Hata: ' + err.message);
+                console.error(err);
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        });
+
+      
+        window.filterBooks = function(category, btnElement) {
+            document.querySelectorAll('.btn-outline-dark').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            if (category === 'all') renderBooks(allBooks);
+            else renderBooks(allBooks.filter(book => book.category === category));
+        }
+    </script>
+</body>
+</html>
+
