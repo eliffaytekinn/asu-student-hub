@@ -3,7 +3,7 @@
 Aksaray Üniversitesi öğrencileri için geliştirilmiş, ders notu paylaşımı ve ikinci el kitap takası yapılabilen bir topluluk platformu. Backend kodu olmadan, tamamen istemci tarafından (frontend) [Supabase](https://supabase.com) üzerinden Auth, Database ve Storage servisleri kullanılarak inşa edilmiştir.
 
 🔗 **Canlı Demo:** [elifaytekinn-e.github.io/su-student-hub](https://elifaytekinn-e.github.io/su-student-hub/)
-📸 **Ekran Görüntüleri:** <img width="1514" height="714" alt="image" src="https://github.com/user-attachments/assets/0a651fa4-987b-4711-ae2c-09b0b18a73d8" />
+📸 **Ekran Görüntüleri:** <img width="1497" height="691" alt="image" src="https://github.com/user-attachments/assets/9cac9812-04e2-4b83-a6cf-11aa0e59ed2a" />
 
 
 ---
@@ -100,8 +100,6 @@ python3 -m http.server 8000
 
 ## 🔒 Bilinen Sınırlamalar / Yol Haritası
 
-- [ ] Kullanıcı girdileri (`innerHTML` ile basılan not/yorum/ilan metinleri) sanitize edilerek XSS riskine karşı sertleştirilmeli.
-- [ ] Dosya yükleme için boyut ve tip sınırlaması eklenmeli.
 - [ ] Silinen not/kitap kayıtlarıyla birlikte ilgili Storage dosyaları da temizlenmeli.
 - [ ] Supabase client kurulum kodu ortak bir `config.js` dosyasına taşınmalı.
 - [ ] "Şifremi Unuttum" akışı gerçek bir sıfırlama linkine bağlanmalı.
