@@ -114,5 +114,5 @@ Bu proje eğitim/portfolyo amaçlı geliştirilmiştir.
 
 ---
 
-**Geliştirici:** _(adınızı buraya ekleyin)_
-**İletişim:** _(e-posta / LinkedIn linkinizi ekleyin)_
+**Geliştirici:** Elif Aytekin
+**İletişim:** Elifaytekinn@icloud.com
